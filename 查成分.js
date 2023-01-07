@@ -14,11 +14,11 @@ import fs from 'fs'
 import cfg from '../../lib/config/config.js'
 
 //在这里填写你的b站cookie↓↓↓↓↓
-var cookie = "buvid3=4EB5F94B-6979-1035-025C-68C1431A88ED94615infoc; b_nut=100; _uuid=48103C4C2-D373-A4A2-695A-F39572E194F694365infoc; buvid4=52530FF9-AA9D-6733-1979-25300DF6107A95524-022110514-jBSghzrWgXHNJfg12rv1yg%3D%3D; buvid_fp_plain=undefined; i-wanna-go-back=-1; nostalgia_conf=-1; CURRENT_FNVAL=4048; rpdid=|(J~RY|R)YmR0J'uYYm|km)|Y; LIVE_BUVID=AUTO3316698562004239; fingerprint=98c4f874feb166fe2f3ec347a8d268c7; hit-new-style-dyn=0; hit-dyn-v2=1; dy_spec_agreed=1; CURRENT_QUALITY=0; DedeUserID=11022578; DedeUserID__ckMd5=2d92ad07754f8965; b_ut=5; bp_video_offset_11022578=747149083632730100; PVID=3; innersign=0; SESSDATA=b02770c2%2C1688572717%2Ce92f7%2A12; bili_jct=021cd70702f306aa05e971afca293c9c; sid=gkj5coia; b_lsid=2687A810B_18587CF8B78; buvid_fp=4EB5F94B-6979-1035-025C-68C1431A88ED94615infoc"
+var cookie = ""
 //在这里填写你的b站cookie↑↑↑↑↑
 //在这里填写你的自动刷新列表设置↓↓↓↓↓
 let rule =`0 0 4 * * ?`  //更新的秒，分，时，日，月，星期几；日月/星期几为互斥条件，必须有一组为*
-let auto_refresh = 1  //是否自动更新列表，1开0关
+let auto_refresh = 0  //是否自动更新列表，1开0关
 let masterId = cfg.masterQQ[0]  //管理者QQ账号
 
 let refresh = schedule.scheduleJob(rule, async (e) => {  //定时更新
