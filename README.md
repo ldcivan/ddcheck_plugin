@@ -31,6 +31,12 @@ VTB列表数据来源：[vtbs.moe](https://vtbs.moe/)
 
 您也可以根据需要配置在js内是否开启自动更新列表，以及自动更新的时间
 
+## 示例
+<div align="left">
+  <img src="https://i0.hdslb.com/bfs/new_dyn/88a145db1880ccd159e3ea3b48bf524111022578.png" height=500px />
+  <img src="https://i0.hdslb.com/bfs/new_dyn/453a037d4108cad14734cadbe48c46b111022578.jpg" height=500px />
+</div>
+
 ## 其他
 ### 感谢
 * [官方Yunzai-Bot-V3](https://github.com/Le-niao/Yunzai-Bot) : [Gitee](https://gitee.com/Le-niao/Yunzai-Bot)
