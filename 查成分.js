@@ -67,11 +67,7 @@ let refresh = schedule.scheduleJob(rule, async (e) => {
     }
 })
 
-const urls = ['https://api.vtbs.moe', 
-'https://api.aws.vtbs.moe', 
-'https://cfapi.vtbs.moe', 
-'https://api.hk.vtbs.moe', 
-'https://api.tokyo.vtbs.moe']
+const urls = fetch("https://api.vtbs.moe/meta/cdn", { "method": "GET" }).json()
 
 const attention_url = "https://account.bilibili.com/api/member/getCardByMid?mid="
 const medal_url = "https://api.live.bilibili.com/xlive/web-ucenter/user/MedalWall?target_id="
