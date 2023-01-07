@@ -14,7 +14,7 @@ import fs from 'fs'
 import cfg from '../../lib/config/config.js'
 
 //在这里填写你的b站cookie↓↓↓↓↓
-var cookie = ""
+var cookie = "buvid3=4EB5F94B-6979-1035-025C-68C1431A88ED94615infoc; b_nut=100; _uuid=48103C4C2-D373-A4A2-695A-F39572E194F694365infoc; buvid4=52530FF9-AA9D-6733-1979-25300DF6107A95524-022110514-jBSghzrWgXHNJfg12rv1yg%3D%3D; buvid_fp_plain=undefined; i-wanna-go-back=-1; nostalgia_conf=-1; CURRENT_FNVAL=4048; rpdid=|(J~RY|R)YmR0J'uYYm|km)|Y; LIVE_BUVID=AUTO3316698562004239; fingerprint=98c4f874feb166fe2f3ec347a8d268c7; hit-new-style-dyn=0; hit-dyn-v2=1; dy_spec_agreed=1; CURRENT_QUALITY=0; DedeUserID=11022578; DedeUserID__ckMd5=2d92ad07754f8965; b_ut=5; bp_video_offset_11022578=747149083632730100; PVID=3; innersign=0; SESSDATA=b02770c2%2C1688572717%2Ce92f7%2A12; bili_jct=021cd70702f306aa05e971afca293c9c; sid=gkj5coia; b_lsid=2687A810B_18587CF8B78; buvid_fp=4EB5F94B-6979-1035-025C-68C1431A88ED94615infoc"
 //在这里填写你的b站cookie↑↑↑↑↑
 //在这里填写你的自动刷新列表设置↓↓↓↓↓
 let rule =`30 10 15 * * ?`  //更新的秒，分，时，日，月，星期几；日月/星期几为互斥条件，必须有一组为*
@@ -109,6 +109,7 @@ export class example extends plugin {
 
 
     async cha_chengfen(e) {
+        let base_info = []
         let message = []
         let mid = e.msg.replace(/#| |查?成分/g, "")
         if(mid == "") {
@@ -122,7 +123,10 @@ export class example extends plugin {
             return
         }
         const medal_list = await this.get_medal_list(mid)
-        await message.push(`用户${JSON.stringify(attention_list.card.name)}，共${Object.keys(attention_list.card.attentions).length}个关注！\n`)
+        await base_info.push(segment.image((JSON.stringify(attention_list.card.face)).replaceAll(`\"`, ``)))
+        await base_info.push(`${JSON.stringify(attention_list.card.name).replaceAll(`\"`, ``)}  Lv${JSON.stringify(attention_list.card.level_info.current_level)}\n粉丝：${attention_list.card.fans}\n关注：${Object.keys(attention_list.card.attentions).length}\n`)
+        if(attention_list.card.official_verify.type!=-1)
+            await base_info.push(`bilibili认证：${JSON.stringify(attention_list.card.official_verify.desc).replaceAll(`\"`, ``)}`)
         
         var v_num = 0
         for(var i = 0;i<Object.keys(attention_list.card.attentions).length;i++){
@@ -137,7 +141,7 @@ export class example extends plugin {
         }
         message.push(`${(v_num/(i)*100).toFixed(2)}% (${v_num}/${i})\n`)
         
-        let forwardMsg = await this.makeForwardMsg(`查成分结果：`, message)
+        let forwardMsg = await this.makeForwardMsg(`查成分结果：`, base_info, message)
         await this.reply(forwardMsg)
         return
     }
@@ -202,11 +206,11 @@ export class example extends plugin {
             return false
         }
         var medal_list_raw = await response.json()
+        var medal_list = {}
         if(medal_list_raw.code!=0){
             await this.reply(JSON.stringify(medal_list_raw.message))
-            return
+            return medal_list
         }
-        var medal_list = {}
         for(var i = 0;i<Object.keys(medal_list_raw.data.list).length;i++){
             var data = {
                 "level":medal_list_raw.data.list[i].medal_info.level,
@@ -217,7 +221,7 @@ export class example extends plugin {
         return medal_list
     }
     
-    async makeForwardMsg (title, msg) {
+    async makeForwardMsg (title, base_info, msg) {
     let nickname = Bot.nickname
     if (this.e.isGroup) {
       let info = await Bot.getGroupMemberInfo(this.e.group_id, Bot.uin)
@@ -232,6 +236,10 @@ export class example extends plugin {
       {
         ...userInfo,
         message: title
+      },
+      {
+        ...userInfo,
+        message: base_info
       },
       {
         ...userInfo,
