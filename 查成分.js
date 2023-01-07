@@ -67,11 +67,12 @@ let refresh = schedule.scheduleJob(rule, async (e) => {
     }
 })
 
-const urls = [
-    "https://api.vtbs.moe/v1/short",
-    "https://api.tokyo.vtbs.moe/v1/short",
-    "https://vtbs.musedash.moe/v1/short",
-]
+const urls = ['https://api.vtbs.moe', 
+'https://api.aws.vtbs.moe', 
+'https://cfapi.vtbs.moe', 
+'https://api.hk.vtbs.moe', 
+'https://api.tokyo.vtbs.moe']
+
 const attention_url = "https://account.bilibili.com/api/member/getCardByMid?mid="
 const medal_url = "https://api.live.bilibili.com/xlive/web-ucenter/user/MedalWall?target_id="
 const dirpath = "plugins/example/cha_chengfen"
