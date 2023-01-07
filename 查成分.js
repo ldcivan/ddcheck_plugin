@@ -139,7 +139,7 @@ export class example extends plugin {
                 v_num++
             }
         }
-        message.push(`${(v_num/(i)*100).toFixed(2)}% (${v_num}/${i})\n`)
+        message.unshift(`${(v_num/(i)*100).toFixed(2)}% (${v_num}/${i})\n-------\n`)
         
         let forwardMsg = await this.makeForwardMsg(`查成分结果：`, base_info, message)
         await this.reply(forwardMsg)
