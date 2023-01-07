@@ -14,18 +14,25 @@ import fs from 'fs'
 import cfg from '../../lib/config/config.js'
 
 //在这里填写你的b站cookie↓↓↓↓↓
-var cookie = ""
+var cookie = "buvid3=4EB5F94B-6979-1035-025C-68C1431A88ED94615infoc; b_nut=100; _uuid=48103C4C2-D373-A4A2-695A-F39572E194F694365infoc; buvid4=52530FF9-AA9D-6733-1979-25300DF6107A95524-022110514-jBSghzrWgXHNJfg12rv1yg%3D%3D; buvid_fp_plain=undefined; i-wanna-go-back=-1; nostalgia_conf=-1; CURRENT_FNVAL=4048; rpdid=|(J~RY|R)YmR0J'uYYm|km)|Y; LIVE_BUVID=AUTO3316698562004239; fingerprint=98c4f874feb166fe2f3ec347a8d268c7; hit-new-style-dyn=0; hit-dyn-v2=1; dy_spec_agreed=1; CURRENT_QUALITY=0; DedeUserID=11022578; DedeUserID__ckMd5=2d92ad07754f8965; b_ut=5; bp_video_offset_11022578=747149083632730100; PVID=3; innersign=0; SESSDATA=b02770c2%2C1688572717%2Ce92f7%2A12; bili_jct=021cd70702f306aa05e971afca293c9c; sid=gkj5coia; b_lsid=2687A810B_18587CF8B78; buvid_fp=4EB5F94B-6979-1035-025C-68C1431A88ED94615infoc"
 //在这里填写你的b站cookie↑↑↑↑↑
 //在这里填写你的自动刷新列表设置↓↓↓↓↓
 let rule =`0 0 4 * * ?`  //更新的秒，分，时，日，月，星期几；日月/星期几为互斥条件，必须有一组为*
-let auto_refresh = 0  //是否自动更新列表，1开0关
+let auto_refresh = 1  //是否自动更新列表，1开0关
 let masterId = cfg.masterQQ[0]  //管理者QQ账号
 
-let refresh = schedule.scheduleJob(rule, async (e) => {
+let refresh = schedule.scheduleJob(rule, async (e) => {  //定时更新
     if(auto_refresh==1){
+        const res = await fetch(api_cdn, { "method": "GET" })
+        const urls = await res.json()
         var local_json = JSON.parse(fs.readFileSync(dirpath + "/" + filename, "utf8"));//读取文件
-        for(var i = 0;i<3;i++){
-            var response = await fetch(urls[i], { "method": "GET" });
+        for(var i = 0;i<Object.keys(urls).length;i++){
+            try {
+                var response = await fetch(urls[i]+"/v1/short", { "method": "GET" });
+            } catch (e) {
+                Bot.pickUser(masterId).sendMsg("发生异常:" + e)
+                console.log("发生异常:" + e)
+            }
             if(response.status==200){
                 await Bot.pickUser(masterId).sendMsg(`使用api：${urls[i]}`)
                 break
@@ -63,16 +70,16 @@ let refresh = schedule.scheduleJob(rule, async (e) => {
         if(refresh_num!=0) {await Bot.pickUser(masterId).sendMsg(`更新了${refresh_num}条`)
             if(refresh_num<=10) {await Bot.pickUser(masterId).sendMsg(`${refresh}`)}
         }
-        await Bot.pickUser(masterId).sendMsg(`成分姬-列表自动更新完成`)
+        await Bot.pickUser(masterId).sendMsg(`成分姬 V列表自动更新已完成`)
     }
 })
 
-const urls = fetch("https://api.vtbs.moe/meta/cdn", { "method": "GET" }).json()
 
-const attention_url = "https://account.bilibili.com/api/member/getCardByMid?mid="
-const medal_url = "https://api.live.bilibili.com/xlive/web-ucenter/user/MedalWall?target_id="
-const dirpath = "plugins/example/cha_chengfen"
-var filename = `vtuber_list.json`
+var api_cdn = "https://api.vtbs.moe/meta/cdn" //v列表接口地址 https://github.com/dd-center/vtbs.moe/blob/master/api.md =>meta-cdn
+const attention_url = "https://account.bilibili.com/api/member/getCardByMid?mid=" //B站基本信息接口 含关注表
+const medal_url = "https://api.live.bilibili.com/xlive/web-ucenter/user/MedalWall?target_id=" //粉丝牌查询接口
+const dirpath = "plugins/example/cha_chengfen" //本地V列表文件夹
+var filename = `vtuber_list.json` //本地V列表文件名
 if (!fs.existsSync(dirpath)) {//如果文件夹不存在
 	fs.mkdirSync(dirpath);//创建文件夹
 }
@@ -144,9 +151,16 @@ export class example extends plugin {
     }
     
     async get_v_list(e) {
+        const res = await fetch(api_cdn, { "method": "GET" })
+        const urls = await res.json()
         var local_json = JSON.parse(fs.readFileSync(dirpath + "/" + filename, "utf8"));//读取文件
-        for(var i = 0;i<3;i++){
-            var response = await fetch(urls[i], { "method": "GET" });
+        for(var i = 0;i<Object.keys(urls).length;i++){
+            try {
+                var response = await fetch(urls[i]+"/v1/short", { "method": "GET" });
+            } catch (e) {
+                this.reply("发生异常:" + e)
+                console.log("发生异常:" + e)
+            }
             if(response.status==200){
                 await this.reply(`使用api：${urls[i]}`)
                 break
