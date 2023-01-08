@@ -27,7 +27,7 @@ VTB列表数据来源：[vtbs.moe](https://vtbs.moe/)
 请在js内配置您的b站账号的cookie，否在无法查询对象的粉丝牌情况（但依然可以获取其关注列表）
 
 > `cookie` 获取方式：<br>
-> 登录bilibili后，`F12` 打开开发工具，查看 `www.bilibili.com` 的请求头下的`cookie`，形如`buvid3=XXX; b_nut=XXX; _uuid=XXX; buvid4=XXX;......buvid_fp=XXX`的字段，即为您的b站cookie
+> 登录bilibili后，`F12` 打开开发工具，查看 `www.bilibili.com` 的请求头下的`cookie`内，形如`SESSDATA=XXXX;`的字段，即为您的b站cookie(理论上只要SESSDATA即可)
 
 您也可以根据需要配置在js内是否开启自动更新列表，以及自动更新的时间
 
