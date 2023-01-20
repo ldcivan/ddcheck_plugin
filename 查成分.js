@@ -14,11 +14,11 @@ import fs from 'fs'
 import cfg from '../../lib/config/config.js'
 
 //在这里填写你的b站cookie↓↓↓↓↓
-var cookie = ""
+var cookie = "SESSDATA=32fb9352%2C1688696213%2C56015%2A12;"
 //在这里填写你的b站cookie↑↑↑↑↑
 //在这里填写你的自动刷新列表设置↓↓↓↓↓
-let rule =`0 0 4 * * ?`  //更新的秒，分，时，日，月，星期几；日月/星期几为互斥条件，必须有一组为*
-let auto_refresh = 0  //是否自动更新列表，1开0关
+let rule =`0 0 0 * * ?`  //更新的秒，分，时，日，月，星期几；日月/星期几为互斥条件，必须有一组为*
+let auto_refresh = 1  //是否自动更新列表，1开0关
 let masterId = cfg.masterQQ[0]  //管理者QQ账号
 
 let refresh = schedule.scheduleJob(rule, async (e) => {  //定时更新
@@ -63,7 +63,7 @@ let refresh = schedule.scheduleJob(rule, async (e) => {  //定时更新
             }}
         }
         await fs.writeFileSync(dirpath + "/" + filename, JSON.stringify(local_json, null, "\t"));//写入文件
-        await Bot.pickUser(masterId).sendMsg(`虚拟主播列表更新完毕，共${Object.keys(v_list).length}条消息！`)
+        await Bot.pickUser(masterId).sendMsg(`虚拟主播列表更新完毕，共获取${Object.keys(v_list).length}条信息，现存在${Object.keys(local_json).length}条信息！`)
         if(record_num!=0) {await Bot.pickUser(masterId).sendMsg(`新增了${record_num}条`)
             if(record_num<=10) {await Bot.pickUser(masterId).sendMsg(`${record}`)}
         }
@@ -91,21 +91,21 @@ if (!fs.existsSync(dirpath + "/" + filename)) {
 export class example extends plugin {
     constructor() {
         super({
-            name: 'pic_search',
+            name: 'DDchecker',
             event: 'message',
             priority: 5000,
             rule: [
                 {
-                    reg: '^#?查?成分.*$',
-                    fnc: 'cha_chengfen'
+                    reg: '^#?查?成分帮助$',
+                    fnc: 'chengfen_help'
                 },
                 {
                   reg: "^#?更新(V|v)列表$",
                   fnc: 'get_v_list'
                 },
                 {
-                  reg: "^#?查?成分帮助$",
-                  fnc: 'chengfen_help'
+                  reg: "^#?查?成分.*$",
+                  fnc: 'cha_chengfen'
                 }
             ]
         })
@@ -191,7 +191,7 @@ export class example extends plugin {
             }}
         }
         await fs.writeFileSync(dirpath + "/" + filename, JSON.stringify(local_json, null, "\t"));//写入文件
-        await this.reply(`虚拟主播列表更新完毕，共${Object.keys(v_list).length}条消息！`)
+        await this.reply(`虚拟主播列表更新完毕，共获取${Object.keys(v_list).length}条信息，现存在${Object.keys(local_json).length}条信息！`)
         if(record_num!=0) {await this.reply(`新增了${record_num}条`)
             if(record_num<=10) {await this.reply(`${record}`)}
         }
@@ -202,11 +202,15 @@ export class example extends plugin {
     
     async get_attention_list(mid) {
         var response = await fetch(attention_url+mid, { "method": "GET" });
-        if (response.status==404) {
+        if (response.status>=400&&response.status<500) {
             await this.reply("404，可能是uid不存在")
             return false
         }
         var attention_list = await response.json()
+        if(!attention_list.code!=0){
+            await this.reply(`获取目标关注列表失败，可能是查无此人：${attention_list.message}`)
+            return false
+        }
         return attention_list
     }
     
@@ -219,7 +223,7 @@ export class example extends plugin {
         var medal_list_raw = await response.json()
         var medal_list = {}
         if(medal_list_raw.code!=0){
-            await this.reply(JSON.stringify(medal_list_raw.message))
+            await this.reply(`获取粉丝牌数据错误：${JSON.stringify(medal_list_raw.message)}`)
             return medal_list
         }
         for(var i = 0;i<Object.keys(medal_list_raw.data.list).length;i++){
