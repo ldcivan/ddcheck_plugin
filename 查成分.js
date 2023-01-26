@@ -207,7 +207,7 @@ export class example extends plugin {
             return false
         }
         var attention_list = await response.json()
-        if(!attention_list.code!=0){
+        if(attention_list.code!=0){
             await this.reply(`获取目标关注列表失败，可能是查无此人：${attention_list.message}`)
             return false
         }
