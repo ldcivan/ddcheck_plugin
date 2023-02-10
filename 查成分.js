@@ -12,6 +12,8 @@ import fetch from "node-fetch"
 import schedule from 'node-schedule'
 import fs from 'fs'
 import cfg from '../../lib/config/config.js'
+import lodash from 'lodash'
+import common from '../../lib/common/common.js'
 
 //在这里填写你的b站cookie↓↓↓↓↓
 var cookie = "SESSDATA=32fb9352%2C1688696213%2C56015%2A12;"
