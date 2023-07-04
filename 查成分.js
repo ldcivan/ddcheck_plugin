@@ -16,12 +16,15 @@ import lodash from 'lodash'
 import common from '../../lib/common/common.js'
 
 //在这里填写你的b站cookie↓↓↓↓↓
-var cookie = "SESSDATA=32fb9352%2C1688696213%2C56015%2A12;"
+var cookie = "SESSDATA=32fb9352%2C1688696213%2C56015%2A12;" //理论上SESSDATA即可
 //在这里填写你的b站cookie↑↑↑↑↑
 //在这里填写你的自动刷新列表设置↓↓↓↓↓
 let rule =`0 0 0 * * ?`  //更新的秒，分，时，日，月，星期几；日月/星期几为互斥条件，必须有一组为*
 let auto_refresh = 1  //是否自动更新列表，1开0关
 let masterId = cfg.masterQQ[0]  //管理者QQ账号
+
+//v列表接口地址 https://github.com/dd-center/vtbs.moe/blob/master/api.md =>meta-cdn
+var api_cdn = "https://api.vtbs.moe/meta/cdn" 
 
 let refresh = schedule.scheduleJob(rule, async (e) => {  //定时更新
     if(auto_refresh==1){
@@ -56,13 +59,14 @@ let refresh = schedule.scheduleJob(rule, async (e) => {  //定时更新
                 record.push(`${v_list[j].mid}已记录`)
                 record_num++
             }else{
-            if(local_json.hasOwnProperty(v_list[j].mid)&&local_json[v_list[j].mid] != data) //存在但有变化
-            {
-                local_json[v_list[j].mid] = data
-                console.log(`${v_list[j].mid}已刷新`)
-                refresh.push(`${v_list[j].mid}已刷新`)
-                refresh_num++
-            }}
+                if(local_json[v_list[j].mid].uname != data.uname || local_json[v_list[j].mid].roomid != data.roomid) //存在但有变化
+                {   
+                    console.log(`${v_list[j].mid}已刷新`)
+                    refresh.push(`${v_list[j].mid}已刷新，${JSON.stringify(local_json[v_list[j].mid])}→${JSON.stringify(data)}`)
+                    local_json[v_list[j].mid] = data
+                    refresh_num++
+                }
+            }
         }
         await fs.writeFileSync(dirpath + "/" + filename, JSON.stringify(local_json, null, "\t"));//写入文件
         await Bot.pickUser(masterId).sendMsg(`虚拟主播列表更新完毕，共获取${Object.keys(v_list).length}条信息，现存在${Object.keys(local_json).length}条信息！`)
@@ -77,7 +81,6 @@ let refresh = schedule.scheduleJob(rule, async (e) => {  //定时更新
 })
 
 
-var api_cdn = "https://api.vtbs.moe/meta/cdn" //v列表接口地址 https://github.com/dd-center/vtbs.moe/blob/master/api.md =>meta-cdn
 const attention_url = "https://account.bilibili.com/api/member/getCardByMid?mid=" //B站基本信息接口 含关注表
 const medal_url = "https://api.live.bilibili.com/xlive/web-ucenter/user/MedalWall?target_id=" //粉丝牌查询接口
 const dirpath = "plugins/example/cha_chengfen" //本地V列表文件夹
@@ -184,21 +187,22 @@ export class example extends plugin {
                 record.push(`${v_list[j].mid}已记录`)
                 record_num++
             }else{
-            if(local_json.hasOwnProperty(v_list[j].mid)&&local_json[v_list[j].mid] != data) //存在但有变化
-            {
-                local_json[v_list[j].mid] = data
-                console.log(`${v_list[j].mid}已刷新`)
-                refresh.push(`${v_list[j].mid}已刷新`)
-                refresh_num++
-            }}
+                if(local_json[v_list[j].mid].uname != data.uname || local_json[v_list[j].mid].roomid != data.roomid) //存在但有变化
+                {   
+                    console.log(`${v_list[j].mid}已刷新`)
+                    refresh.push(`${v_list[j].mid}已刷新，${JSON.stringify(local_json[v_list[j].mid])}→${JSON.stringify(data)}`)
+                    local_json[v_list[j].mid] = data
+                    refresh_num++
+                }
+            }
         }
         await fs.writeFileSync(dirpath + "/" + filename, JSON.stringify(local_json, null, "\t"));//写入文件
         await this.reply(`虚拟主播列表更新完毕，共获取${Object.keys(v_list).length}条信息，现存在${Object.keys(local_json).length}条信息！`)
         if(record_num!=0) {await this.reply(`新增了${record_num}条`)
-            if(record_num<=10) {await this.reply(`${record}`)}
+            if(record_num<=5) {await this.reply(`${record}`)}
         }
         if(refresh_num!=0) {await this.reply(`更新了${refresh_num}条`)
-            if(refresh_num<=10) {await this.reply(`${refresh}`)}
+            if(refresh_num<=5) {await this.reply(`${refresh}`)}
         }
     }
     
