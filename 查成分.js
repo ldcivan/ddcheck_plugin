@@ -26,7 +26,14 @@ let masterId = cfg.masterQQ[0]  //管理者QQ账号
 //v列表接口地址 https://github.com/dd-center/vtbs.moe/blob/master/api.md =>meta-cdn
 var api_cdn = "https://api.vtbs.moe/meta/cdn" 
 
-let refresh = schedule.scheduleJob(rule, async (e) => {  //定时更新
+
+
+let record_num = 0
+let refresh_num = 0
+let record = []
+let refresh = []
+
+let refresh_task = schedule.scheduleJob(rule, async (e) => {  //定时更新
     if(auto_refresh==1){
         const res = await fetch(api_cdn, { "method": "GET" })
         const urls = await res.json()
@@ -44,15 +51,16 @@ let refresh = schedule.scheduleJob(rule, async (e) => {  //定时更新
             }
         }
         let v_list = await response.json()
+        
+        record_num = 0
+        refresh_num = 0
+        record = []
+        refresh = []
         for(var j = 0;j<Object.keys(v_list).length;j++){
             var data = {
                 "uname": v_list[j].uname,
                 "roomid":v_list[j].roomid
             }
-            var record_num = 0
-            var refresh_num = 0
-            var record = []
-            var refresh = []
             if(!local_json.hasOwnProperty(v_list[j].mid)) {//如果json中不存在该用户
                 local_json[v_list[j].mid] = data
                 console.log(`${v_list[j].mid}已记录`)
@@ -70,10 +78,12 @@ let refresh = schedule.scheduleJob(rule, async (e) => {  //定时更新
         }
         await fs.writeFileSync(dirpath + "/" + filename, JSON.stringify(local_json, null, "\t"));//写入文件
         await Bot.pickUser(masterId).sendMsg(`虚拟主播列表更新完毕，共获取${Object.keys(v_list).length}条信息，现存在${Object.keys(local_json).length}条信息！`)
-        if(record_num!=0) {await Bot.pickUser(masterId).sendMsg(`新增了${record_num}条`)
+        if(record_num!=0) {
+            await Bot.pickUser(masterId).sendMsg(`新增了${record_num}条`)
             if(record_num<=10) {await Bot.pickUser(masterId).sendMsg(`${record}`)}
         }
-        if(refresh_num!=0) {await Bot.pickUser(masterId).sendMsg(`更新了${refresh_num}条`)
+        if(refresh_num!=0) {
+            await Bot.pickUser(masterId).sendMsg(`更新了${refresh_num}条`)
             if(refresh_num<=10) {await Bot.pickUser(masterId).sendMsg(`${refresh}`)}
         }
         await Bot.pickUser(masterId).sendMsg(`成分姬 V列表自动更新已完成`)
@@ -172,15 +182,16 @@ export class example extends plugin {
             }
         }
         let v_list = await response.json()
+        
+        record_num = 0
+        refresh_num = 0
+        record = []
+        refresh = []
         for(var j = 0;j<Object.keys(v_list).length;j++){
             var data = {
                 "uname": v_list[j].uname,
                 "roomid":v_list[j].roomid
             }
-            var record_num = 0
-            var refresh_num = 0
-            var record = []
-            var refresh = []
             if(!local_json.hasOwnProperty(v_list[j].mid)) {//如果json中不存在该用户
                 local_json[v_list[j].mid] = data
                 console.log(`${v_list[j].mid}已记录`)
