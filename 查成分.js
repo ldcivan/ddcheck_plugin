@@ -16,7 +16,7 @@ import lodash from 'lodash'
 import common from '../../lib/common/common.js'
 
 //在这里填写你的b站cookie↓↓↓↓↓
-var cookie = "SESSDATA=32fb9352%2C1688696213%2C56015%2A12;" //理论上SESSDATA即可
+var cookie = "buvid3=77380049-91B1-740F-0567-29A0687E39AC01254infoc; SESSDATA=f4ddbcf8%2C1689255625%2C28461*11;" //理论上buvid3与SESSDATA即可
 //在这里填写你的b站cookie↑↑↑↑↑
 //在这里填写你的自动刷新列表设置↓↓↓↓↓
 let rule =`0 0 0 * * ?`  //更新的秒，分，时，日，月，星期几；日月/星期几为互斥条件，必须有一组为*
@@ -93,6 +93,7 @@ let refresh_task = schedule.scheduleJob(rule, async (e) => {  //定时更新
 
 const attention_url = "https://account.bilibili.com/api/member/getCardByMid?mid=" //B站基本信息接口 含关注表
 const medal_url = "https://api.live.bilibili.com/xlive/web-ucenter/user/MedalWall?target_id=" //粉丝牌查询接口
+const search_url = `https://api.bilibili.com/x/web-interface/wbi/search/type?search_type=bili_user&keyword=` //昵称转uid
 const dirpath = "plugins/example/cha_chengfen" //本地V列表文件夹
 var filename = `vtuber_list.json` //本地V列表文件名
 if (!fs.existsSync(dirpath)) {//如果文件夹不存在
@@ -135,6 +136,19 @@ export class example extends plugin {
             this.chengfen_help(e)
             return
         }
+        let name = ''
+        if(isNaN(mid)){
+            var uid_name = await this.name2uid(mid)
+            mid = uid_name["mid"]
+            name = uid_name["name"]
+            if (isNaN(mid)) {
+                this.reply(`无法由该昵称(${name})转换为uid`)
+                return false
+            }
+            else{
+                this.reply(`已使用uid：${mid}，昵称为：${name}`)
+            }
+        }
         const vtb_list = JSON.parse(fs.readFileSync(dirpath + "/" + filename, "utf8"));//读取文件
         const attention_list = await this.get_attention_list(mid)
         if(attention_list.card.attention!=0 && JSON.stringify(attention_list.card.attentions)=="[]"){
@@ -163,6 +177,34 @@ export class example extends plugin {
         let forwardMsg = await this.makeForwardMsg(`查成分结果：`, base_info, message)
         await this.reply(forwardMsg)
         return
+    }
+    
+    async name2uid(name) {
+        //https://api.bilibili.com/x/web-interface/wbi/search/type?page=1&page_size=36&platform=pc&keyword=%E8%8B%A6%E6%80%95creep-II&search_type=bili_user
+        try {
+            var response = await fetch(search_url+name, { "headers": {"cookie": cookie, "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0"}, "method": "GET" });
+        } catch (e) {
+            this.reply("name2uid请求发生异常:" + e + "，可能是cookie中的buvid3失效导致")
+            console.log("name2uid请求发生异常:" + e)
+        }
+        let search_result = await response.json()
+        if(search_result['code']==0){
+            if(search_result['data']['numResults'] != 0){
+                let uid = search_result['data']['result'][0]['mid']
+                let name = search_result['data']['result'][0]['uname']
+                let uid_name = {"mid": parseInt(uid), "name": name}
+                return uid_name
+            }
+            else {
+                this.reply("无法由昵称转为uid：搜索结果为0")
+                return false
+            }
+        }
+        else {
+            this.reply("昵称转uid解析过程发生异常:"+JSON.stringify(search_result))
+            console.log("昵称转uid解析过程发生异常")
+            return false
+        }
     }
     
     async get_v_list(e) {
@@ -240,7 +282,7 @@ export class example extends plugin {
         var medal_list_raw = await response.json()
         var medal_list = {}
         if(medal_list_raw.code!=0){
-            await this.reply(`获取粉丝牌数据错误：${JSON.stringify(medal_list_raw.message)}`)
+            await this.reply(`获取粉丝牌数据错误：${JSON.stringify(medal_list_raw.message)}，一般是cookie中的SESSDATA过期导致`)
             return medal_list
         }
         for(var i = 0;i<Object.keys(medal_list_raw.data.list).length;i++){
@@ -295,6 +337,6 @@ export class example extends plugin {
     return forwardMsg
   }
   async chengfen_help(e){
-      await this.reply("查成分帮助\n1.发送 #更新v列表 更新主播列表到本地，建议每周至少更新一次\n2.使用 #查成分 目标uid 获取目标的成分，包括关注的V/游戏官号以及对应的粉丝牌")
+      await this.reply("查成分帮助\n1.发送 #更新v列表 更新主播列表到本地，建议每周至少更新一次\n2.使用 #查成分 目标uid或者昵称全称 获取目标的成分，包括关注的V/游戏官号以及对应的粉丝牌")
   }
 }
