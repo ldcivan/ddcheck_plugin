@@ -329,6 +329,7 @@ export class example extends plugin {
     }
 
     /** 处理描述 */
+    forwardMsg.data = JSON.stringify(forwardMsg.data)
     forwardMsg.data = forwardMsg.data
       .replace(/\n/g, '')
       .replace(/<title color="#777777" size="26">(.+?)<\/title>/g, '___')
