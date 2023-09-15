@@ -157,7 +157,7 @@ export class example extends plugin {
         }
         const medal_list = await this.get_medal_list(mid)
         await base_info.push(segment.image((attention_list.card.face)))
-        await base_info.push(`${JSON.stringify(attention_list.card.name).replaceAll(`\"`, ``)}  Lv${JSON.stringify(attention_list.card.level_info.current_level)}\n粉丝：${attention_list.card.fans}\n关注：${Object.keys(attention_list.card.attentions).length}\n`)
+        await base_info.push(`${JSON.stringify(attention_list.card.name).replaceAll(`\"`, ``)} (uid: ${mid})  Lv${JSON.stringify(attention_list.card.level_info.current_level)}\n粉丝：${attention_list.card.fans}\n关注：${Object.keys(attention_list.card.attentions).length}\n`)
         if(attention_list.card.official_verify.type!=-1)
             await base_info.push(`bilibili认证：${JSON.stringify(attention_list.card.official_verify.desc).replaceAll(`\"`, ``)}`)
         
