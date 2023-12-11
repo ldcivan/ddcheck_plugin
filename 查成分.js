@@ -141,7 +141,7 @@ export class example extends plugin {
             var uid_name = await this.name2uid(mid)
             mid = uid_name["mid"]
             name = uid_name["name"]
-            if (isNaN(mid)) {
+            if (mid==0) {
                 this.reply(`无法由该昵称(${name})转换为uid`)
                 return false
             }
@@ -186,10 +186,12 @@ export class example extends plugin {
         } catch (e) {
             this.reply("name2uid请求发生异常:" + e + "，可能是cookie中的buvid3失效导致")
             console.log("name2uid请求发生异常:" + e)
+            let uid_name = {"mid": 0, "name": name}
+            return uid_name
         }
         let search_result = await response.json()
-        if(search_result['code']==0){
-            if(search_result['data']['numResults'] != 0){
+        if(search_result['code']==0&&typeof(search_result['data']['result'])!='undefined'){
+            if(search_result['data']['result'].length != 0){
                 let uid = search_result['data']['result'][0]['mid']
                 let name = search_result['data']['result'][0]['uname']
                 let uid_name = {"mid": parseInt(uid), "name": name}
@@ -197,13 +199,16 @@ export class example extends plugin {
             }
             else {
                 this.reply("无法由昵称转为uid：搜索结果为0")
-                return false
+                console.log("昵称转uid解析过程发生异常：搜索结果为0")
+                let uid_name = {"mid": 0, "name": name}
+                return uid_name
             }
         }
         else {
             this.reply("昵称转uid解析过程发生异常:"+JSON.stringify(search_result))
             console.log("昵称转uid解析过程发生异常")
-            return false
+            let uid_name = {"mid": 0, "name": name}
+            return uid_name
         }
     }
     
@@ -298,7 +303,7 @@ export class example extends plugin {
     async makeForwardMsg (title, base_info, msg) {
     let nickname = Bot.nickname
     if (this.e.isGroup) {
-      let info = await Bot.getGroupMemberInfo(this.e.group_id, Bot.uin)
+      let info = await Bot.pickMember(this.e.group_id, Bot.uin)
       nickname = info.card ?? info.nickname
     }
     let userInfo = {
