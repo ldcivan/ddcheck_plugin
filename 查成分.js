@@ -304,7 +304,7 @@ export class example extends plugin {
     let nickname = Bot.nickname
     if (this.e.isGroup) {
       let info = await Bot.pickMember(this.e.group_id, Bot.uin)
-      nickname = info.card ?? info.nickname
+      nickname = info.nickname || info.card
     }
     let userInfo = {
       user_id: Bot.uin,
