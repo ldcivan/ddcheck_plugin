@@ -16,7 +16,7 @@ import lodash from 'lodash'
 import common from '../../lib/common/common.js'
 
 //在这里填写你的b站cookie↓↓↓↓↓
-var cookie = "buvid3=77380049-91B1-740F-0567-29A0687E39AC01254infoc; SESSDATA=f4ddbcf8%2C1689255625%2C28461*11;" //理论上buvid3与SESSDATA即可
+var cookie = "buvid3=D6159034-E96C-9C64-A5D8-9763308FFE4C96423infoc; SESSDATA=xxxxxxx%2C1689255625%2C28461*11;" //理论上buvid3与SESSDATA即可
 //在这里填写你的b站cookie↑↑↑↑↑
 //在这里填写你的自动刷新列表设置↓↓↓↓↓
 let rule =`0 0 0 * * ?`  //更新的秒，分，时，日，月，星期几；日月/星期几为互斥条件，必须有一组为*
@@ -94,7 +94,7 @@ let refresh_task = schedule.scheduleJob(rule, async (e) => {  //定时更新
 const attention_url = "https://account.bilibili.com/api/member/getCardByMid?mid=" //B站基本信息接口 含关注表
 const medal_url = "https://api.live.bilibili.com/xlive/web-ucenter/user/MedalWall?target_id=" //粉丝牌查询接口
 const search_url = `https://api.bilibili.com/x/web-interface/wbi/search/type?search_type=bili_user&keyword=` //昵称转uid
-const dirpath = "plugins/example/cha_chengfen" //本地V列表文件夹
+const dirpath = "data/cha_chengfen" //本地V列表文件夹
 var filename = `vtuber_list.json` //本地V列表文件名
 if (!fs.existsSync(dirpath)) {//如果文件夹不存在
 	fs.mkdirSync(dirpath);//创建文件夹
@@ -182,7 +182,7 @@ export class example extends plugin {
     async name2uid(name) {
         //https://api.bilibili.com/x/web-interface/wbi/search/type?page=1&page_size=36&platform=pc&keyword=%E8%8B%A6%E6%80%95creep-II&search_type=bili_user
         try {
-            var response = await fetch(search_url+name, { "headers": {"cookie": cookie, "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0"}, "method": "GET" });
+            var response = await fetch((search_url+name), { "headers": {"cookie": cookie, "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0", "Reference": "https://www.bilibili.com"}, "method": "GET" });
         } catch (e) {
             this.reply("name2uid请求发生异常:" + e + "，可能是cookie中的buvid3失效导致")
             console.log("name2uid请求发生异常:" + e)
@@ -205,7 +205,7 @@ export class example extends plugin {
             }
         }
         else {
-            this.reply("昵称转uid解析过程发生异常:"+JSON.stringify(search_result))
+            this.reply("昵称转uid解析过程发生异常:"+search_url+name+JSON.stringify(search_result))
             console.log("昵称转uid解析过程发生异常")
             let uid_name = {"mid": 0, "name": name}
             return uid_name
