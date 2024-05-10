@@ -21,6 +21,7 @@ var cookie = "SESSDATA=XXXXXXXXXXXX;" //理论上SESSDATA即可
 //在这里填写你的自动刷新列表设置↓↓↓↓↓
 let rule =`0 0 0 * * ?`  //更新的秒，分，时，日，月，星期几；日月/星期几为互斥条件，必须有一组为*
 let auto_refresh = 1  //是否自动更新列表，1开0关
+let divisor = 100  //切割发送阈值，0则不切割
 let masterId = cfg.masterQQ[0]  //管理者QQ账号
 
 //v列表接口地址 https://github.com/dd-center/vtbs.moe/blob/master/api.md =>meta-cdn
@@ -161,21 +162,32 @@ export class example extends plugin {
         if(attention_list.card.official_verify.type!=-1)
             await base_info.push(`bilibili认证：${JSON.stringify(attention_list.card.official_verify.desc).replaceAll(`\"`, ``)}`)
         
-        var v_num = 0
+        var v_num = 0;
+        var split_index = 0;
+        message[split_index] = [];
         for(var i = 0;i<Object.keys(attention_list.card.attentions).length;i++){
             if(vtb_list.hasOwnProperty(attention_list.card.attentions[i])) {//如果json中存在该用户
-                let uid = attention_list.card.attentions[i]
-                message.push(`${JSON.stringify(vtb_list[uid].uname).replaceAll("\"","")} - ${uid}\n`)
+                let uid = attention_list.card.attentions[i];
+                message[split_index].push(`${JSON.stringify(vtb_list[uid].uname).replaceAll("\"","")} - ${uid}\n`)
                 if(medal_list.hasOwnProperty(attention_list.card.attentions[i])){
-                    message.push(`└${JSON.stringify(medal_list[uid].medal_name).replaceAll("\"","")}|${medal_list[uid].level}\n`)
+                    message[split_index].push(`└${JSON.stringify(medal_list[uid].medal_name).replaceAll("\"","")}|${medal_list[uid].level}\n`)
                 }
-                v_num++
+                v_num++;
+                if (divisor !== 0) {
+                    if (v_num % divisor === 0) {
+                        split_index++;
+                        message[split_index] = [];
+                    }
+                }
             }
         }
-        message.unshift(`${(v_num/(i)*100).toFixed(2)}% (${v_num}/${i})\n-------\n`)
+        var dd_percent_str = `${(v_num/(i)*100).toFixed(2)}% (${v_num}/${i})\n-------\n`;
+        for(var i = 0; i < message.length; i++) {
+            message[i].unshift(dd_percent_str);
         
-        let forwardMsg = await this.makeForwardMsg(`查成分结果：`, base_info, message)
-        await this.reply(forwardMsg)
+            let forwardMsg = await this.makeForwardMsg(`查成分结果(第${i+1}页/共${message.length}页${divisor===0?'':`/每页${divisor}项`})：`, base_info, message[i])
+            await this.reply(forwardMsg)
+        }
         return
     }
     
