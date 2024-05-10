@@ -33,7 +33,7 @@ VTB列表数据来源：[vtbs.moe](https://vtbs.moe/)
 > `cookie` 获取方式：<br>
 > 登录bilibili后，`F12` 打开开发工具，查看 `www.bilibili.com` 的请求头下的`cookie`内，形如`SESSDATA=XXXX;`的字段，即为您的b站cookie（理论上只要`SESSDATA`即可，`SESSDATA`可能需要经常更新；不要将`SESSDATA`透露给任何人，该字段包含了您的Bilibili登录令牌，其泄露可能给您的账号带来风险）
 
-您还可以根据需要配置在js内是否开启自动更新列表，以及自动更新的时间
+您还可以根据需要配置在js内是否开启自动更新列表，自动更新的时间，以及切割发送设置，具体调整方式参考js内注释
 
 ## 示例
 <div align="left">
