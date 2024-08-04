@@ -23,6 +23,8 @@ let rule =`0 0 0 * * ?`  //更新的秒，分，时，日，月，星期几；�
 let auto_refresh = 1  //是否自动更新列表，1开0关
 let divisor = 100  //切割发送阈值，0则不切割
 let masterId = cfg.masterQQ[0]  //管理者QQ账号
+let announce_limit = 10;  //新增或更新时，数量超过该值则不回报详情
+let ping_timeout = 1500;  //api的ping值测试超时阈值
 
 //v列表接口地址 https://github.com/dd-center/vtbs.moe/blob/master/api.md =>meta-cdn
 var api_cdn = "https://api.vtbs.moe/meta/cdn" 
@@ -37,7 +39,8 @@ let refresh = []
 let refresh_task = schedule.scheduleJob(rule, async (e) => {  //定时更新
     if(auto_refresh==1){
         const res = await fetch(api_cdn, { "method": "GET" })
-        const urls = await res.json()
+        let urls = await res.json();
+        urls = await this.sortUrlsByPing(urls);
         var local_json = JSON.parse(fs.readFileSync(dirpath + "/" + filename, "utf8"));//读取文件
         for(var i = 0;i<Object.keys(urls).length;i++){
             try {
@@ -81,11 +84,11 @@ let refresh_task = schedule.scheduleJob(rule, async (e) => {  //定时更新
         await Bot.pickUser(masterId).sendMsg(`虚拟主播列表更新完毕，共获取${Object.keys(v_list).length}条信息，现存在${Object.keys(local_json).length}条信息！`)
         if(record_num!=0) {
             await Bot.pickUser(masterId).sendMsg(`新增了${record_num}条`)
-            if(record_num<=10) {await Bot.pickUser(masterId).sendMsg(`${record}`)}
+            if(record_num<=announce_limit) {await Bot.pickUser(masterId).sendMsg(`${record}`)}
         }
         if(refresh_num!=0) {
             await Bot.pickUser(masterId).sendMsg(`更新了${refresh_num}条`)
-            if(refresh_num<=10) {await Bot.pickUser(masterId).sendMsg(`${refresh}`)}
+            if(refresh_num<=announce_limit) {await Bot.pickUser(masterId).sendMsg(`${refresh}`)}
         }
         await Bot.pickUser(masterId).sendMsg(`成分姬 V列表自动更新已完成`)
     }
@@ -226,7 +229,8 @@ export class example extends plugin {
     
     async get_v_list(e) {
         const res = await fetch(api_cdn, { "method": "GET" })
-        const urls = await res.json()
+        let urls = await res.json();
+        urls = await this.sortUrlsByPing(urls);
         var local_json = JSON.parse(fs.readFileSync(dirpath + "/" + filename, "utf8"));//读取文件
         for(var i = 0;i<Object.keys(urls).length;i++){
             try {
@@ -269,10 +273,10 @@ export class example extends plugin {
         await fs.writeFileSync(dirpath + "/" + filename, JSON.stringify(local_json, null, "\t"));//写入文件
         await this.reply(`虚拟主播列表更新完毕，共获取${Object.keys(v_list).length}条信息，现存在${Object.keys(local_json).length}条信息！`)
         if(record_num!=0) {await this.reply(`新增了${record_num}条`)
-            if(record_num<=5) {await this.reply(`${record}`)}
+            if(record_num<=announce_limit) {await this.reply(`${record}`)}
         }
         if(refresh_num!=0) {await this.reply(`更新了${refresh_num}条`)
-            if(refresh_num<=5) {await this.reply(`${refresh}`)}
+            if(refresh_num<=announce_limit) {await this.reply(`${refresh}`)}
         }
     }
     
@@ -310,6 +314,42 @@ export class example extends plugin {
             medal_list[medal_list_raw.data.list[i].medal_info.target_id] = data
         }
         return medal_list
+    }
+    
+    async ping(url, timeout = ping_timeout) {
+        const controller = new AbortController();
+        const signal = controller.signal;
+    
+        const fetchPromise = fetch(url, { method: 'HEAD', mode: 'no-cors', signal })
+            .then(() => Date.now() - start)
+            .catch(() => Infinity); // If fetch fails, consider it as an infinite ping time
+    
+        const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => {
+                controller.abort();
+                reject(new Error('timeout'));
+            }, timeout)
+        );
+    
+        const start = Date.now();
+        try {
+            return await Promise.race([fetchPromise, timeoutPromise]);
+        } catch (error) {
+            return Infinity; // Consider timeout as an infinite ping time
+        }
+    }
+    
+    async sortUrlsByPing(urls) {
+        const pingResults = await Promise.all(urls.map(async (url) => {
+            const pingTime = await this.ping(url);
+            return { url, pingTime };
+        }));
+    
+        pingResults.sort((a, b) => a.pingTime - b.pingTime);
+    
+        return pingResults
+            .filter(result => result.pingTime < Infinity) // Filter out unreachable servers
+            .map(result => result.url);
     }
     
     async makeForwardMsg (title, base_info, msg) {
