@@ -19,6 +19,12 @@ VTB列表数据来源：[vtbs.moe](https://vtbs.moe/)
 ```
 #查成分 UID
 ```
+
+**按昵称查成分**
+
+```
+#查成分 昵称
+```
 **注意：首次使用时应该先更新列表，否则本地列表将为空，程序无法对比生成目标成分**
 
 ## 部署到云崽
@@ -31,9 +37,15 @@ VTB列表数据来源：[vtbs.moe](https://vtbs.moe/)
 请在js内配置您的b站账号的cookie，否在无法查询对象的粉丝牌情况或使用昵称转uid功能（但依然可以通过uid获取其关注列表）
 
 > `cookie` 获取方式：<br>
-> 登录bilibili后，`F12` 打开开发工具，查看 `www.bilibili.com` 的请求头下的`cookie`内，形如`SESSDATA=XXXX;`的字段，即为您的b站cookie（理论上只要`SESSDATA`即可，`SESSDATA`可能需要经常更新；不要将`SESSDATA`透露给任何人，该字段包含了您的Bilibili登录令牌，其泄露可能给您的账号带来风险）
+> 登录bilibili后，`F12` 打开开发工具，查看 `www.bilibili.com` 的请求头下的`cookie`内，形如`buvid4=XXXX;SESSDATA=XXXX;`的字段，即为您的b站cookie <br>
 
-您还可以根据需要配置在js内是否开启自动更新列表，自动更新的时间，以及切割发送设置，具体调整方式参考js内注释
+理论上，使用粉丝牌查询只需要`SESSDATA`，使用昵称转uid需要`buvid4`以及`SESSDATA`；如果您不是很了解cookie的结构、用法、用途，请直接将cookie下的所有内容贴入
+
+`SESSDATA`与`buvid4`可能需要经常更新，当cookie失效后，查成分时会出现提示
+
+<b><h3>注意：不要将包含`SESSDATA`或`buvid4`在内的cookie透露给任何人，这些字段包含了您的Bilibili登录令牌，其泄露可能给您的账号带来风险</h3></b>
+
+您还可以根据需要配置在js内是否开启自动更新列表，自动更新的时间，以及切割发送等等设置，具体调整方式参考js内注释
 
 ## 示例
 <div align="left">
