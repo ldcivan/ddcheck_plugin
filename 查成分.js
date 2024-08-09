@@ -36,11 +36,47 @@ let refresh_num = 0
 let record = []
 let refresh = []
 
+async function sortUrlsByPing(urls) {
+    const pingResults = await Promise.all(urls.map(async (url) => {
+        const pingTime = await ping(url);
+        return { url, pingTime };
+    }));
+
+    pingResults.sort((a, b) => a.pingTime - b.pingTime);
+
+    return pingResults
+        .filter(result => result.pingTime < Infinity) // Filter out unreachable servers
+        .map(result => result.url);
+}
+
+async function ping(url, timeout = ping_timeout) {
+    const controller = new AbortController();
+    const signal = controller.signal;
+
+    const fetchPromise = fetch(url, { method: 'HEAD', mode: 'no-cors', signal })
+        .then(() => Date.now() - start)
+        .catch(() => Infinity); // If fetch fails, consider it as an infinite ping time
+
+    const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => {
+            controller.abort();
+            reject(new Error('timeout'));
+        }, timeout)
+    );
+
+    const start = Date.now();
+    try {
+        return await Promise.race([fetchPromise, timeoutPromise]);
+    } catch (error) {
+        return Infinity; // Consider timeout as an infinite ping time
+    }
+}
+
 let refresh_task = schedule.scheduleJob(rule, async (e) => {  //定时更新
     if(auto_refresh==1){
         const res = await fetch(api_cdn, { "method": "GET" })
         let urls = await res.json();
-        urls = await this.sortUrlsByPing(urls);
+        urls = await sortUrlsByPing(urls);
         var local_json = JSON.parse(fs.readFileSync(dirpath + "/" + filename, "utf8"));//读取文件
         for(var i = 0;i<Object.keys(urls).length;i++){
             try {
