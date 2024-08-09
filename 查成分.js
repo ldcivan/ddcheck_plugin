@@ -15,9 +15,7 @@ import cfg from '../../lib/config/config.js'
 import lodash from 'lodash'
 import common from '../../lib/common/common.js'
 
-//在这里填写你的b站cookie↓↓↓↓↓
-var cookie = "SESSDATA=XXXXXXXXXXXX;" //理论上SESSDATA即可
-//在这里填写你的b站cookie↑↑↑↑↑
+var cookie = "" //理论上SESSDATA即可 现在通过命令设置
 //在这里填写你的自动刷新列表设置↓↓↓↓↓
 let rule =`0 0 0 * * ?`  //更新的秒，分，时，日，月，星期几；日月/星期几为互斥条件，必须有一组为*
 let auto_refresh = 1  //是否自动更新列表，1开0关
@@ -136,6 +134,7 @@ const medal_url = "https://api.live.bilibili.com/xlive/web-ucenter/user/MedalWal
 const search_url = `https://api.bilibili.com/x/web-interface/wbi/search/type?search_type=bili_user&keyword=` //昵称转uid
 const dirpath = "data/cha_chengfen" //本地V列表文件夹
 var filename = `vtuber_list.json` //本地V列表文件名
+var cookie_filename = `bilibili_cookies.txt`; //b站cookie
 if (!fs.existsSync(dirpath)) {//如果文件夹不存在
 	fs.mkdirSync(dirpath);//创建文件夹
 }
@@ -143,6 +142,27 @@ if (!fs.existsSync(dirpath + "/" + filename)) {
     fs.writeFileSync(dirpath + "/" + filename, JSON.stringify({
     }))
 }
+if (!fs.existsSync(dirpath + "/" + cookie_filename)) {
+    fs.writeFileSync(dirpath + "/" + cookie_filename, JSON.stringify({
+    }))
+}
+// 读取文件内容并存储到变量 cookie 中
+fs.readFile(dirpath + "/" + cookie_filename, 'utf8', async function(err, data) {
+    if (err) {
+        await Bot.pickUser(masterId).sendMsg('Cookie 文件读取错误');
+        console.error(err);
+        return;
+    }
+
+    if (data === '') {
+        await Bot.pickUser(masterId).sendMsg('您尚未设置cookie，请使用 #查成分保存ck 来保存');
+        console.log('文件为空');
+    } else {
+        const cookie = data;
+        await Bot.pickUser(masterId).sendMsg('查成分 Cookie已设置');
+        console.log('读取到的 Cookie:', cookie);
+    }
+});
 
 export class example extends plugin {
     constructor() {
@@ -158,6 +178,14 @@ export class example extends plugin {
                 {
                   reg: "^#?更新(V|v)列表$",
                   fnc: 'get_v_list'
+                },
+                {
+                  reg: "^#?查?成分(保存|记录)(ck|cookie|cookies).*$",
+                  fnc: 'write_cookies'
+                },
+                {
+                  reg: "^#?查?成分查看(ck|cookie|cookies)$",
+                  fnc: 'show_cookies'
                 },
                 {
                   reg: "^#?查?成分.*$",
@@ -352,6 +380,38 @@ export class example extends plugin {
         return medal_list
     }
     
+    async write_cookies(e) {
+        cookie = e.msg.replace(/#| |查?成分|保存|记录|ck|cookie|cookies/g, "");
+        fs.writeFile(dirpath + "/" + cookie_filename, cookie, 'utf8', async function(err) {
+            if (err) {
+                console.error(err);
+                await e.reply('Cookie 保存失败');
+                return;
+            }
+            console.log('Cookie 已成功保存到文件:', filepath);
+            await e.reply('Cookie 已保存：' + cookie);
+        });
+    }
+    
+    async show_cookies(e) {
+        // 读取文件内容并存储到变量 cookie 中
+        fs.readFile(dirpath + "/" + cookie_filename, 'utf8', async function(err, data) {
+            if (err) {
+                await e.reply('Cookie 文件读取错误');
+                console.error(err);
+                return;
+            }
+    
+            if (data === '') {
+                await e.reply('您尚未设置cookie，请使用 #查成分保存ck 来保存');
+                console.log('文件为空');
+            } else {
+                await e.reply('读取到的 Cookie:' + data);
+                console.log('读取到的 Cookie:', data);
+            }
+        });
+    }
+    
     async ping(url, timeout = ping_timeout) {
         const controller = new AbortController();
         const signal = controller.signal;
@@ -432,6 +492,6 @@ export class example extends plugin {
     return forwardMsg
   }
   async chengfen_help(e){
-      await this.reply("查成分帮助\n1.发送 #更新v列表 更新主播列表到本地，建议每周至少更新一次\n2.使用 #查成分 目标uid或者昵称全称 获取目标的成分，包括关注的V/游戏官号以及对应的粉丝牌")
+      await this.reply("查成分帮助\n1.发送 #更新v列表 更新主播列表到本地，建议每周至少更新一次\n2.使用 #查成分 目标uid或者昵称全称 获取目标的成分，包括关注的V/游戏官号以及对应的粉丝牌\n3.使用 #查成分记录ck 保存b站cookie，使用 #查成分查看ck 查看保存的ck")
   }
 }
