@@ -34,7 +34,7 @@ VTB列表数据来源：[vtbs.moe](https://vtbs.moe/)
 部署时，请注意控制台载入是否正常，若出现类似“XXX is not defined”的报错，请确认是否安装好对应的依赖
 
 ## 配置
-请在js内配置您的b站账号的cookie，否在无法查询对象的粉丝牌情况或使用昵称转uid功能（但依然可以通过uid获取其关注列表）
+请使用命令`#查成分记录ck 您的cookie`来配置您的b站账号的cookie，否则在无法查询对象的粉丝牌情况或使用昵称转uid功能（但依然可以通过uid获取其关注列表）
 
 > `cookie` 获取方式：<br>
 > 登录bilibili后，`F12` 打开开发工具，查看 `www.bilibili.com` 的请求头下的`cookie`内，形如`buvid4=XXXX;SESSDATA=XXXX;`的字段，即为您的b站cookie <br>
